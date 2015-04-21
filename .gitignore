@@ -29,9 +29,9 @@
 # Ignore GYP generated Visual Studio artifacts.
 *.filters
 *.sdf
-*.sln
+.sln
 *.suo
-*.vcproj
+.vcproj
 *.vcxproj
 
 # Ignore compiled Python files.
