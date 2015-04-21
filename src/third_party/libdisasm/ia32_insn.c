@@ -21,14 +21,14 @@ extern ia32_settings_t ia32_settings;
 		 op->data.reg.alias == REG_ESP_INDEX) )
 #define IS_IMM( op ) (op->type == op_immediate )
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define INLINE 
 #else
 #  define INLINE inline
 #endif
 
 /* for calculating stack modification based on an operand */
-static INLINE int32_t long_from_operand( x86_op_t *op ) {
+static int32_t INLINE long_from_operand( x86_op_t *op ) {
 
 	if (! IS_IMM(op) ) {
 		return 0L;

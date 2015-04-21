@@ -1,0 +1,16 @@
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdisasm", "libdisasm.vcproj", "{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Win32 = Default|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Default|Win32.ActiveCfg = Default|Win32
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Default|Win32.Build.0 = Default|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

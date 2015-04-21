@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "libdis.h"
 #include "ia32_implicit.h"
 #include "ia32_insn.h"
 #include "ia32_reg.h"
@@ -378,6 +379,7 @@ unsigned int ia32_insn_implicit_ops( x86_insn_t *insn, unsigned int impl_idx ) {
 	op_implicit_list_t *list;
 	x86_op_t *op;
 	unsigned int num = 0;
+	x86_oplist_t * existing;
 
 	if (! impl_idx || impl_idx > LAST_IMPL_IDX ) {
 		return 0;
@@ -392,7 +394,7 @@ unsigned int ia32_insn_implicit_ops( x86_insn_t *insn, unsigned int impl_idx ) {
                  * the instruction without being explicitly listed in assembly.
                  * For this situation, find the hardcoded operand and add the
                  * implied flag rather than adding a new implicit operand. */
-		x86_oplist_t * existing;
+		
 		if (ia32_true_register_id(list->operand) == REG_DWORD_OFFSET) {
 			for ( existing = insn->operands; existing; existing = existing->next ) {
 				if (existing->op.type == op_register &&

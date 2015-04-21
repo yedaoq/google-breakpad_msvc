@@ -60,7 +60,7 @@ struct SIB_byte {
    unsigned int base  : 3;
 };
 
-#ifdef WIN32
+#ifdef _WIN32
 static void byte_decode(unsigned char b, struct modRM_byte *modrm) {
 #else
 static inline void byte_decode(unsigned char b, struct modRM_byte *modrm) {
