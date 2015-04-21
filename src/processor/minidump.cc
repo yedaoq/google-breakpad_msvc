@@ -44,6 +44,7 @@
 
 #ifdef _WIN32
 #include <io.h>
+#include <stdint.h>
 #define PRIx64 "llx"
 #define PRIx32 "lx"
 #define snprintf _snprintf

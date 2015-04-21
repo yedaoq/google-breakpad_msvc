@@ -27,7 +27,7 @@
 #include "processor/disassembler_x86.h"
 
 #include <string.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 namespace google_breakpad {
 
@@ -197,9 +197,9 @@ uint32_t DisassemblerX86::NextInstruction() {
         if (dest && dest->type == libdis::op_register &&
             src && src->type == libdis::op_register) {
           if (dest->data.reg.id == bad_register_.id)
-            memcpy(&bad_register_, &src->data.reg, sizeof(libdis::x86_reg_t));
+			  ::memcpy(&bad_register_, &src->data.reg, sizeof(libdis::x86_reg_t));
           else if (src->data.reg.id == bad_register_.id)
-            memcpy(&bad_register_, &dest->data.reg, sizeof(libdis::x86_reg_t));
+			  ::memcpy(&bad_register_, &dest->data.reg, sizeof(libdis::x86_reg_t));
         }
         break;
       default:
@@ -218,7 +218,7 @@ bool DisassemblerX86::setBadRead() {
   if (!operand || operand->type != libdis::op_expression)
     return false;
 
-  memcpy(&bad_register_, &operand->data.expression.base,
+  ::memcpy(&bad_register_, &operand->data.expression.base,
          sizeof(libdis::x86_reg_t));
   register_valid_ = true;
   return true;
@@ -232,7 +232,7 @@ bool DisassemblerX86::setBadWrite() {
   if (!operand || operand->type != libdis::op_expression)
     return false;
 
-  memcpy(&bad_register_, &operand->data.expression.base,
+  ::memcpy(&bad_register_, &operand->data.expression.base,
          sizeof(libdis::x86_reg_t));
   register_valid_ = true;
   return true;
