@@ -53,6 +53,11 @@
 #include "processor/pathname_stripper.h"
 #include "processor/simple_symbol_supplier.h"
 
+#ifdef _WIN32
+#define snprintf _snprintf
+#pragma comment(lib, "processor.lib")
+#endif
+
 namespace {
 
 using std::vector;
@@ -90,7 +95,7 @@ static int PrintRegister(const char *name, uint32_t value, int start_col) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), " %5s = 0x%08x", name, value);
 
-  if (start_col + static_cast<ssize_t>(strlen(buffer)) > kMaxWidth) {
+  if (start_col + static_cast<size_t>(strlen(buffer)) > kMaxWidth) {
     start_col = 0;
     printf("\n ");
   }
@@ -104,7 +109,7 @@ static int PrintRegister64(const char *name, uint64_t value, int start_col) {
   char buffer[64];
   snprintf(buffer, sizeof(buffer), " %5s = 0x%016" PRIx64 , name, value);
 
-  if (start_col + static_cast<ssize_t>(strlen(buffer)) > kMaxWidth) {
+  if (start_col + static_cast<size_t>(strlen(buffer)) > kMaxWidth) {
     start_col = 0;
     printf("\n ");
   }
@@ -862,7 +867,10 @@ int main(int argc, char **argv) {
       symbol_paths.push_back(argv[argi]);
   }
 
-  return PrintMinidumpProcess(minidump_file,
+  int ret = PrintMinidumpProcess(minidump_file,
                               symbol_paths,
                               machine_readable) ? 0 : 1;
+
+  getchar();
+  return ret;
 }
