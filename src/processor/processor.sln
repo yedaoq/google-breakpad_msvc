@@ -17,17 +17,35 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libdisasm", "..\third_party
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
 		Default|Win32 = Default|Win32
+		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Debug|Win32.ActiveCfg = Default|Win32
+		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Debug|Win32.Build.0 = Default|Win32
 		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Default|Win32.ActiveCfg = Default|Win32
 		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Default|Win32.Build.0 = Default|Win32
+		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Release|Win32.ActiveCfg = Default|Win32
+		{CAE6F41A-F0C1-43A9-5C06-DF41DDDEC0AF}.Release|Win32.Build.0 = Default|Win32
+		{53ABA5E3-1624-C562-A425-014350E3E551}.Debug|Win32.ActiveCfg = Default|Win32
+		{53ABA5E3-1624-C562-A425-014350E3E551}.Debug|Win32.Build.0 = Default|Win32
 		{53ABA5E3-1624-C562-A425-014350E3E551}.Default|Win32.ActiveCfg = Default|Win32
 		{53ABA5E3-1624-C562-A425-014350E3E551}.Default|Win32.Build.0 = Default|Win32
+		{53ABA5E3-1624-C562-A425-014350E3E551}.Release|Win32.ActiveCfg = Default|Win32
+		{53ABA5E3-1624-C562-A425-014350E3E551}.Release|Win32.Build.0 = Default|Win32
+		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Debug|Win32.ActiveCfg = Default|Win32
+		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Debug|Win32.Build.0 = Default|Win32
 		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Default|Win32.ActiveCfg = Default|Win32
 		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Default|Win32.Build.0 = Default|Win32
+		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Release|Win32.ActiveCfg = Default|Win32
+		{18EFDEEA-F415-C4F1-F22E-17EA08F1F2F9}.Release|Win32.Build.0 = Default|Win32
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Debug|Win32.ActiveCfg = Default|Win32
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Debug|Win32.Build.0 = Default|Win32
 		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Default|Win32.ActiveCfg = Default|Win32
 		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Default|Win32.Build.0 = Default|Win32
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Release|Win32.ActiveCfg = Default|Win32
+		{2D86EECA-80E3-1998-D1ED-2A05E4D4E427}.Release|Win32.Build.0 = Default|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

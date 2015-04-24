@@ -56,6 +56,7 @@
 #ifdef _WIN32
 #define snprintf _snprintf
 #pragma comment(lib, "processor.lib")
+#pragma comment(lib, "libdisasm.lib")
 #endif
 
 namespace {
