@@ -52,12 +52,15 @@
 #include "processor/logging.h"
 #include "processor/pathname_stripper.h"
 #include "processor/simple_symbol_supplier.h"
+#include "processor/stackwalker_x86.h"
 
 #ifdef _WIN32
 #define snprintf _snprintf
 #pragma comment(lib, "processor.lib")
 #pragma comment(lib, "libdisasm.lib")
 #endif
+
+using namespace google_breakpad;
 
 namespace {
 
@@ -838,7 +841,7 @@ static void usage(const char *program_name) {
 		program_name);
 }
 
-int main1(int argc, char **argv) {
+int main(int argc, char **argv) {
 	BPLOG_INIT(&argc, &argv);
 
 	if (argc < 2) {
@@ -880,9 +883,9 @@ int main1(int argc, char **argv) {
 	return ret;
 }
 
-int main(int argc, char **argv) {
+int main1(int argc, char **argv) {
 	
-	Minidump dump(TEXT("D:\\YunleDev\\Other\\Zip\\ca8e3d4d-20b7-4e8f-9e6c-62435bdbb45e.dmp"));
+	Minidump dump("D:\\YunleDev\\Other\\Zip\\ca8e3d4d-20b7-4e8f-9e6c-62435bdbb45e.dmp");
 	if (!dump.Read()) 
 	{
 		BPLOG(ERROR) << "Minidump " << dump.path() << " could not be read";
@@ -890,20 +893,20 @@ int main(int argc, char **argv) {
 	}
 
 	SystemInfo sys_info;
-	bool has_cpu_info = MinidumpProcessor::GetCPUInfo(dump, &sys_info);
-	bool has_os_info = MinidumpProcessor::GetOSInfo(dump, &sys_info);
+	bool has_cpu_info = MinidumpProcessor::GetCPUInfo(&dump, &sys_info);
+	bool has_os_info = MinidumpProcessor::GetOSInfo(&dump, &sys_info);
 
 	uint32_t dump_thread_id = 0;
 	bool has_dump_thread = false;
 	uint32_t requesting_thread_id = 0;
 	bool has_requesting_thread = false;
-	string crash_reason = 0;
+	string crash_reason;
 	uint64_t crash_address = 0;
 
-	MinidumpException *exception = dump->GetException();
+	MinidumpException *exception = dump.GetException();
 	if (exception) {
 		has_requesting_thread = exception->GetThreadID(&requesting_thread_id);
-		crash_reason = MinidumpProcessor::GetCrashReason(dump, &crash_reason);
+		crash_reason = MinidumpProcessor::GetCrashReason(&dump, &crash_address);
 	}
 	else
 	{
@@ -918,19 +921,19 @@ int main(int argc, char **argv) {
 // 	if (module_list)
 // 		process_state->modules_ = module_list->Copy();
 
-	MinidumpMemoryList *memory_list = dump->GetMemoryList();
+	MinidumpMemoryList *memory_list = dump.GetMemoryList();
 	if (memory_list) {
 		BPLOG(INFO) << "Found " << memory_list->region_count()
 			<< " memory regions.";
 	}
 
-	MinidumpThreadList *threads = dump->GetThreadList();
+	MinidumpThreadList *threads = dump.GetThreadList();
 	if (!threads) {
-		BPLOG(ERROR) << "Minidump " << dump->path() << " has no thread list";
+		BPLOG(ERROR) << "Minidump " << dump.path() << " has no thread list";
 		return PROCESS_ERROR_NO_THREAD_LIST;
 	}
 
-	BPLOG(INFO) << "Minidump " << dump->path() << " has " <<
+	BPLOG(INFO) << "Minidump " << dump.path() << " has " <<
 		(has_cpu_info           ? "" : "no ") << "CPU info, " <<
 		(has_os_info            ? "" : "no ") << "OS info, " <<
 		//(breakpad_info != NULL  ? "" : "no ") << "Breakpad info, " <<
@@ -955,139 +958,51 @@ int main(int argc, char **argv) {
 	if(!request_thread_context)
 		request_thread_context = request_thread->GetContext();
 
-
-	// here
-
-	for (unsigned int thread_index = 0;
-		thread_index < thread_count;
-		++thread_index) {
-			char thread_string_buffer[64];
-			snprintf(thread_string_buffer, sizeof(thread_string_buffer), "%d/%d",
-				thread_index, thread_count);
-			string thread_string = dump->path() + ":" + thread_string_buffer;
-
-			MinidumpThread *thread = threads->GetThreadAtIndex(thread_index);
-			if (!thread) {
-				BPLOG(ERROR) << "Could not get thread for " << thread_string;
-				return PROCESS_ERROR_GETTING_THREAD;
-			}
-
-			uint32_t thread_id;
-			if (!thread->GetThreadID(&thread_id)) {
-				BPLOG(ERROR) << "Could not get thread ID for " << thread_string;
-				return PROCESS_ERROR_GETTING_THREAD_ID;
-			}
-
-			thread_string += " id " + HexString(thread_id);
-			BPLOG(INFO) << "Looking at thread " << thread_string;
-
-			// If this thread is the thread that produced the minidump, don't process
-			// it.  Because of the problems associated with a thread producing a
-			// dump of itself (when both its context and its stack are in flux),
-			// processing that stack wouldn't provide much useful data.
-			if (has_dump_thread && thread_id == dump_thread_id) {
-				continue;
-			}
-
-			MinidumpContext *context = thread->GetContext();
-
-
-			if (has_requesting_thread && thread_id == requesting_thread_id) 
-			{
-				if (found_requesting_thread) {
-					// There can't be more than one requesting thread.
-					BPLOG(ERROR) << "Duplicate requesting thread: " << thread_string;
-					return PROCESS_ERROR_DUPLICATE_REQUESTING_THREADS;
-				}
-
-				// Use processed_state->threads_.size() instead of thread_index.
-				// thread_index points to the thread index in the minidump, which
-				// might be greater than the thread index in the threads vector if
-				// any of the minidump's threads are skipped and not placed into the
-				// processed threads vector.  The thread vector's current size will
-				// be the index of the current thread when it's pushed into the
-				// vector.
-				process_state->requesting_thread_ = process_state->threads_.size();
-
-				found_requesting_thread = true;
-
-				if (process_state->crashed_) {
-					// Use the exception record's context for the crashed thread, instead
-					// of the thread's own context.  For the crashed thread, the thread's
-					// own context is the state inside the exception handler.  Using it
-					// would not result in the expected stack trace from the time of the
-					// crash. If the exception context is invalid, however, we fall back
-					// on the thread context.
-					MinidumpContext *ctx = exception->GetContext();
-					context = ctx ? ctx : thread->GetContext();
-				}
-			}
-
-			// If the memory region for the stack cannot be read using the RVA stored
-			// in the memory descriptor inside MINIDUMP_THREAD, try to locate and use
-			// a memory region (containing the stack) from the minidump memory list.
-			MinidumpMemoryRegion *thread_memory = thread->GetMemory();
-			if (!thread_memory && memory_list) {
-				uint64_t start_stack_memory_range = thread->GetStartOfStackMemoryRange();
-				if (start_stack_memory_range) {
-					thread_memory = memory_list->GetMemoryRegionForAddress(
-						start_stack_memory_range);
-				}
-			}
-			if (!thread_memory) {
-				BPLOG(ERROR) << "No memory region for " << thread_string;
-			}
-
-			// Use process_state->modules_ instead of module_list, because the
-			// |modules| argument will be used to populate the |module| fields in
-			// the returned StackFrame objects, which will be placed into the
-			// returned ProcessState object.  module_list's lifetime is only as
-			// long as the Minidump object: it will be deleted when this function
-			// returns.  process_state->modules_ is owned by the ProcessState object
-			// (just like the StackFrame objects), and is much more suitable for this
-			// task.
-			scoped_ptr<Stackwalker> stackwalker(
-				Stackwalker::StackwalkerForCPU(process_state->system_info(),
-				context,
-				thread_memory,
-				process_state->modules_,
-				frame_symbolizer_));
-
-			scoped_ptr<CallStack> stack(new CallStack());
-			if (stackwalker.get()) {
-				if (!stackwalker->Walk(stack.get(),
-					&process_state->modules_without_symbols_,
-					&process_state->modules_with_corrupt_symbols_)) {
-						BPLOG(INFO) << "Stackwalker interrupt (missing symbols?) at "
-							<< thread_string;
-						interrupted = true;
-				}
-			} else {
-				// Threads with missing CPU contexts will hit this, but
-				// don't abort processing the rest of the dump just for
-				// one bad thread.
-				BPLOG(ERROR) << "No stackwalker for " << thread_string;
-			}
-			process_state->threads_.push_back(stack.release());
-			process_state->thread_memory_regions_.push_back(thread_memory);
+	// If the memory region for the stack cannot be read using the RVA stored
+	// in the memory descriptor inside MINIDUMP_THREAD, try to locate and use
+	// a memory region (containing the stack) from the minidump memory list.
+	MinidumpMemoryRegion *thread_memory = request_thread->GetMemory();
+	if (!thread_memory && memory_list) {
+		uint64_t start_stack_memory_range = request_thread->GetStartOfStackMemoryRange();
+		if (start_stack_memory_range) {
+			thread_memory = memory_list->GetMemoryRegionForAddress(
+				start_stack_memory_range);
+		}
+	}
+	if (!thread_memory) {
+		BPLOG(ERROR) << "No memory region for " << requesting_thread_id;
 	}
 
-	if (interrupted) {
-		BPLOG(INFO) << "Processing interrupted for " << dump->path();
-		return PROCESS_SYMBOL_SUPPLIER_INTERRUPTED;
+	// Use process_state->modules_ instead of module_list, because the
+	// |modules| argument will be used to populate the |module| fields in
+	// the returned StackFrame objects, which will be placed into the
+	// returned ProcessState object.  module_list's lifetime is only as
+	// long as the Minidump object: it will be deleted when this function
+	// returns.  process_state->modules_ is owned by the ProcessState object
+	// (just like the StackFrame objects), and is much more suitable for this
+	// task.
+
+
+
+	scoped_ptr<Stackwalker> stackwalker(
+		Stackwalker::StackwalkerForCPU(&sys_info, request_thread_context, thread_memory,
+		NULL, // process_state->modules_,
+		NULL)); //frame_symbolizer_));
+
+	scoped_ptr<CallStack> stack(new CallStack());
+	if (stackwalker.get()) {
+		if (!stackwalker->Walk(stack.get(),
+			NULL, // &process_state->modules_without_symbols_,
+			NULL)) { //&process_state->modules_with_corrupt_symbols_)) {
+				BPLOG(INFO) << "Stackwalker interrupt (missing symbols?) at "
+					<< requesting_thread_id;
+				interrupted = true;
+		}
 	}
 
-	// If a requesting thread was indicated, it must be present.
-	if (has_requesting_thread && !found_requesting_thread) {
-		// Don't mark as an error, but invalidate the requesting thread
-		BPLOG(ERROR) << "Minidump indicated requesting thread " <<
-			HexString(requesting_thread_id) << ", not found in " <<
-			dump->path();
-		process_state->requesting_thread_ = -1;
-	}
-
+	PrintStack(stack.get(), sys_info.cpu);
 
 	getchar();
-	return ret;
+	return 1;
 }
 
