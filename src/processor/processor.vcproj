@@ -42,6 +42,7 @@
 				AdditionalIncludeDirectories=".."
 				PreprocessorDefinitions="NOMINMAX"
 				ProgramDataBaseFileName="$(IntDir)$(ProjectName)\vc80.pdb"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

@@ -841,7 +841,7 @@ static void usage(const char *program_name) {
 		program_name);
 }
 
-int main(int argc, char **argv) {
+int main1(int argc, char **argv) {
 	BPLOG_INIT(&argc, &argv);
 
 	if (argc < 2) {
@@ -883,7 +883,7 @@ int main(int argc, char **argv) {
 	return ret;
 }
 
-int main1(int argc, char **argv) {
+int main(int argc, char **argv) {
 	
 	Minidump dump("D:\\YunleDev\\Other\\Zip\\ca8e3d4d-20b7-4e8f-9e6c-62435bdbb45e.dmp");
 	if (!dump.Read()) 
@@ -950,6 +950,8 @@ int main1(int argc, char **argv) {
 	// Reset frame_symbolizer_ at the beginning of stackwalk for each minidump.
 	//frame_symbolizer_->Reset();
 
+	StackFrameSymbolizer* frame_symbolizer = new StackFrameSymbolizer(NULL, NULL);
+
 	MinidumpThread* request_thread = threads->GetThreadByID(requesting_thread_id);
 	if(!request_thread)
 		return 0;
@@ -987,7 +989,7 @@ int main1(int argc, char **argv) {
 	scoped_ptr<Stackwalker> stackwalker(
 		Stackwalker::StackwalkerForCPU(&sys_info, request_thread_context, thread_memory,
 		NULL, // process_state->modules_,
-		NULL)); //frame_symbolizer_));
+		frame_symbolizer));
 
 	scoped_ptr<CallStack> stack(new CallStack());
 	if (stackwalker.get()) {
